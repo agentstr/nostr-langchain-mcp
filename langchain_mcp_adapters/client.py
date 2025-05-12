@@ -1,21 +1,27 @@
 import os
+import uuid
 from contextlib import AsyncExitStack
 from datetime import timedelta
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Literal, Optional, TypedDict, cast
+from threading import Thread
 
 from langchain_core.documents.base import Blob
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, StructuredTool
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.sse import sse_client
 from mcp.client.stdio import stdio_client
 from mcp.client.streamable_http import streamablehttp_client
-
+from mcp.types import CallToolResult
 from langchain_mcp_adapters.prompts import load_mcp_prompt
 from langchain_mcp_adapters.resources import load_mcp_resources
-from langchain_mcp_adapters.tools import load_mcp_tools
+from langchain_mcp_adapters.tools import load_mcp_tools, _convert_call_tool_result
+
+from nostr_agents.nostr_client import NostrClient
+from nostr_agents.nostr_mcp_client import NostrMCPClient
+
 
 EncodingErrorHandler = Literal["strict", "ignore", "replace"]
 
@@ -32,6 +38,20 @@ DEFAULT_STREAMABLE_HTTP_SSE_READ_TIMEOUT = timedelta(seconds=60 * 5)
 class Connection(TypedDict):
     session_kwargs: dict[str, Any] | None
     """Additional keyword arguments to pass to the ClientSession"""
+
+
+class NostrConnection(Connection):
+    relays: list[str]
+    """List of Nostr relays to connect to."""
+
+    private_key: str
+    """Nostr private key (nsec format) of the client."""
+
+    server_public_key: str
+    """Nostr public key (hex format) of the server."""
+
+    nwc_str: str
+    """Nostr wallet connection string for lightning payments (not yet implemented)."""
 
 
 class StdioConnection(Connection):
@@ -107,7 +127,7 @@ class MultiServerMCPClient:
     def __init__(
         self,
         connections: dict[
-            str, StdioConnection | SSEConnection | WebsocketConnection | StreamableHttpConnection
+            str, StdioConnection | SSEConnection | WebsocketConnection | StreamableHttpConnection | NostrConnection
         ]
         | None = None,
     ) -> None:
@@ -168,7 +188,7 @@ class MultiServerMCPClient:
         self,
         server_name: str,
         *,
-        transport: Literal["stdio", "sse", "websocket", "streamable_http"] = "stdio",
+        transport: Literal["stdio", "sse", "websocket", "streamable_http", "nostr"] = "stdio",
         **kwargs: dict[str, Any],
     ) -> None:
         """Connect to an MCP server.
@@ -233,6 +253,23 @@ class MultiServerMCPClient:
             await self.connect_to_server_via_websocket(
                 server_name,
                 url=kwargs["url"],
+                session_kwargs=kwargs.get("session_kwargs"),
+            )
+        elif transport == "nostr":
+            if "relays" not in kwargs:
+                raise ValueError("'relays' parameter is required for Nostr connection")
+            if "private_key" not in kwargs:
+                raise ValueError("'private_key' parameter is required for Nostr connection")
+            if "server_public_key" not in kwargs:
+                raise ValueError("'server_public_key' parameter is required for Nostr connection")
+            if "nwc_str" not in kwargs:
+                raise ValueError("'nwc_str' parameter is required for Nostr connection")
+            await self.connect_to_server_via_nostr(
+                server_name,
+                relays=kwargs["relays"],
+                private_key=kwargs["private_key"],
+                server_public_key=kwargs["server_public_key"],
+                nwc_str=kwargs["nwc_str"],
                 session_kwargs=kwargs.get("session_kwargs"),
             )
         else:
@@ -392,6 +429,84 @@ class MultiServerMCPClient:
         )
 
         await self._initialize_session_and_load_tools(server_name, session)
+
+    async def connect_to_server_via_nostr(
+        self,
+        server_name: str,
+        *,
+        relays: list[str],
+        private_key: str,
+        server_public_key: str,
+        nwc_str: str,
+        session_kwargs: dict[str, Any] | None = None,
+    ) -> None:
+        """Connect to a specific MCP server using Nostr
+
+        Args:
+            server_name: Name to identify this server connection
+            relays: List of Nostr relays to connect to
+            private_key: Nostr private key (nsec format) of the client
+            server_public_key: Nostr public key (hex format) of the server
+            nwc_str: Nostr wallet connection string for lightning payments (not yet implemented)
+            session_kwargs: Additional keyword arguments to pass to the ClientSession
+        """
+        nostr_client = NostrClient(
+            relays=relays,
+            private_key=private_key,
+            nwc_str=nwc_str,
+        )
+        session = NostrMCPClient(
+            nostr_client=nostr_client,
+            mcp_pubkey=server_public_key,
+        )
+        self.sessions[server_name] = session
+
+        arr = [None]
+        def get_result(fn, *args):
+            arr[0] = fn(*args)
+
+        # Load tools from this server
+        thr = Thread(target=get_result, args=(session.list_tools,))
+        thr.start()
+        thr.join(30)
+
+        tools = arr[0]
+        server_tools = []
+        results = {}
+
+        def call_tool(
+                tool_name: str,
+                uid: str,
+                **arguments: dict[str, Any],
+        ):
+            call_tool_result = session.call_tool(tool_name, arguments)
+            print(f'Got result: {call_tool_result}')
+            call_tool_result = CallToolResult(**call_tool_result)
+            result = _convert_call_tool_result(call_tool_result)
+            results[uid][0] = result
+
+        def get_result(tool_name: str):
+            uid = str(uuid.uuid4())
+            results[uid] = [None]
+
+            def inner(**kwargs):
+                thr = Thread(target=call_tool, args=(tool_name, uid,), kwargs=kwargs)
+                thr.start()
+                thr.join(30)
+                return results[uid][0], None
+            return inner
+
+        for tool in tools['tools']:
+            server_tools.append(
+                StructuredTool(
+                    name=tool['name'],
+                    description=tool.get('description') or "",
+                    args_schema=tool['inputSchema'],
+                    func=get_result(tool['name']),
+                    response_format="content_and_artifact",
+                )
+            )
+        self.server_name_to_tools[server_name] = server_tools
 
     def get_tools(self) -> list[BaseTool]:
         """Get a list of all tools from all connected servers."""

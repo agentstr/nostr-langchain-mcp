@@ -12,10 +12,11 @@ authors = [
 license = "MIT"
 repository = "https://www.github.com/langchain-ai/langchain-mcp-adapters"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "langchain-core>=0.3.36,<0.4",
     "mcp>=1.7",
+    "nostr-agent-tools>=0.2.0",
 ]
 
 [dependency-groups]
@@ -60,3 +61,8 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
+
+[tool.uv.workspace]
+members = [
+    "examples/clients/nostr-client",
+]
