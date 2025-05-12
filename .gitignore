@@ -39,3 +39,4 @@ MANIFEST
 dmypy.json
 
 .idea/
+.langgraph_api/

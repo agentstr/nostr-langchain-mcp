@@ -1,7 +1,10 @@
 import os
+from contextlib import asynccontextmanager
+
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_anthropic import ChatAnthropic
 from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
 from dotenv import load_dotenv
 
 
@@ -16,13 +19,14 @@ def _ensure_env(var: str):
 _ensure_env("ANTHROPIC_API_KEY")
 
 model = ChatAnthropic(temperature=0, model_name="claude-3-7-sonnet-latest")
-relays = os.getenv('NOSTR_RELAYS').split(',')
-private_key = os.getenv('NOSTR_CLIENT_PRIVATE_KEY')
-server_public_key = os.getenv('NOSTR_SERVER_PUBLIC_KEY')
-nwc_str = os.getenv('NOSTR_NWC_STR')
 
 
+@asynccontextmanager
 async def mcp_client():
+    relays = os.getenv('NOSTR_RELAYS').split(',')
+    private_key = os.getenv('NOSTR_CLIENT_PRIVATE_KEY')
+    server_public_key = os.getenv('NOSTR_SERVER_PUBLIC_KEY')
+    nwc_str = os.getenv('NOSTR_NWC_STR')
     async with MultiServerMCPClient(
         {
             "nostr": {
@@ -34,14 +38,19 @@ async def mcp_client():
             },
         }
     ) as client:
-        agent = create_react_agent(model, client.get_tools())
-        for output in agent.stream({"messages": "what's the weather in portland?"}, stream_mode="updates"):
-            print(output)
-        for output in agent.stream({"messages": "what's the current date and time?"}):
-            print(output)
+        agent = create_react_agent(model, client.get_tools(), checkpointer=MemorySaver())
+        yield agent
 
 
 if __name__ == '__main__':
     import asyncio
-    asyncio.run(mcp_client())
+
+    async def run():
+        async with mcp_client() as agent:
+            async for output in agent.astream({"messages": "what's the weather in portland?"}, stream_mode="updates"):
+                print(output)
+            async for output in agent.astream({"messages": "what's the current date and time?"}):
+                print(output)
+
+    asyncio.run(run())
 

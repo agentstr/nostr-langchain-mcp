@@ -6,6 +6,7 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any, Literal, Optional, TypedDict, cast
 from threading import Thread
+import asyncio
 
 from langchain_core.documents.base import Blob
 from langchain_core.messages import AIMessage, HumanMessage
@@ -450,6 +451,8 @@ class MultiServerMCPClient:
             nwc_str: Nostr wallet connection string for lightning payments (not yet implemented)
             session_kwargs: Additional keyword arguments to pass to the ClientSession
         """
+        print(f'my relays: {relays}')
+        print(f'my private_key: {private_key}')
         nostr_client = NostrClient(
             relays=relays,
             private_key=private_key,
@@ -461,39 +464,21 @@ class MultiServerMCPClient:
         )
         self.sessions[server_name] = session
 
-        arr = [None]
-        def get_result(fn, *args):
-            arr[0] = fn(*args)
-
         # Load tools from this server
-        thr = Thread(target=get_result, args=(session.list_tools,))
-        thr.start()
-        thr.join(30)
-
-        tools = arr[0]
+        tools = await asyncio.to_thread(session.list_tools)
+        print(f'Tools: {tools}')
         server_tools = []
-        results = {}
 
         def call_tool(
-                tool_name: str,
-                uid: str,
-                **arguments: dict[str, Any],
+                tool_name: str
         ):
-            call_tool_result = session.call_tool(tool_name, arguments)
-            print(f'Got result: {call_tool_result}')
-            call_tool_result = CallToolResult(**call_tool_result)
-            result = _convert_call_tool_result(call_tool_result)
-            results[uid][0] = result
-
-        def get_result(tool_name: str):
-            uid = str(uuid.uuid4())
-            results[uid] = [None]
-
-            def inner(**kwargs):
-                thr = Thread(target=call_tool, args=(tool_name, uid,), kwargs=kwargs)
-                thr.start()
-                thr.join(30)
-                return results[uid][0], None
+            async def inner(**arguments: dict[str, Any]):
+                call_tool_result = await asyncio.to_thread(session.call_tool,
+                                                           tool_name,
+                                                           arguments)
+                call_tool_result = CallToolResult(**call_tool_result)
+                result = _convert_call_tool_result(call_tool_result)
+                return result, None
             return inner
 
         for tool in tools['tools']:
@@ -502,7 +487,7 @@ class MultiServerMCPClient:
                     name=tool['name'],
                     description=tool.get('description') or "",
                     args_schema=tool['inputSchema'],
-                    func=get_result(tool['name']),
+                    coroutine=call_tool(tool['name']),
                     response_format="content_and_artifact",
                 )
             )
