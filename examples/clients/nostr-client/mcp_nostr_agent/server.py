@@ -1,6 +1,8 @@
+import os
 from fastapi import FastAPI
 from mcp_nostr_agent.agent import mcp_client, get_tools
 from mcp_nostr_agent.info import AgentInfo, Skill
+from pynostr.key import PrivateKey
 from pydantic import BaseModel
 
 
@@ -14,23 +16,19 @@ app = FastAPI()
 
 @app.get("/info")
 async def info():
-    skills = []
     async def get_skills():
         async with get_tools() as tools:
-            for tool in tools:
-                skills.append(
-                    Skill(
-                        name=tool.name,
-                        description=tool.description,
-                    )
-                )
-    await get_skills()
+            return [Skill(
+                    name=tool.name,
+                    description=tool.description,
+                ) for tool in tools]
+    skills = await get_skills()
     return AgentInfo(
         name='Simple Nostr Agent',
         description='Helps perform a variety of simple tasks in Python.',
         skills=skills,
         satoshis=50,
-        nostr_pubkey='your_nostr_pubkey_here',
+        nostr_pubkey=PrivateKey.from_nsec(os.getenv('NOSTR_CLIENT_PRIVATE_KEY')).public_key.bech32(),
     ).model_dump()
 
 

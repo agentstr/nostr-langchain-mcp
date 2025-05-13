@@ -16,8 +16,11 @@ requires-python = ">=3.12"
 dependencies = [
     "langchain-core>=0.3.36,<0.4",
     "mcp>=1.7",
-    "nostr-agent-tools>=0.3.0",
+    "nostr-agent-tools>=0.3.2",
 ]
+
+[tool.uv]
+reinstall-package = ["nostr-agent-tools"]
 
 [dependency-groups]
 test = [
