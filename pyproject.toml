@@ -11,7 +11,6 @@ authors = [
     { name = "Evan Hallmark", email = "ehallmark1122@gmail.com" }
 ]
 license = "MIT"
-repository = "https://www.github.com/ehallmark/langchain-mcp-adapters"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -34,39 +33,12 @@ test = [
     "websockets>=15.0.1"
 ]
 
-[tool.pytest.ini_options]
-minversion = "8.0"
-addopts = "-ra -q -v"
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_functions = ["test_*"]
-asyncio_default_fixture_loop_scope = "function"
-
-[tool.ruff]
-line-length = 100
-target-version = "py310"
-
-[tool.ruff.lint]
-select = [
-    "E", # pycodestyle errors
-    "W", # pycodestyle warnings
-    "F", # pyflakes
-    "I", # isort
-    "B", # flake8-bugbear
-]
-ignore = [
-    "E501", # line-length
-]
-
-
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-check_untyped_defs = true
-
 [tool.uv.workspace]
 members = [
     "examples/clients/nostr-client",
 ]
+
+[project.urls]
+Homepage = "https://www.github.com/ehallmark/langchain-mcp-adapters"
+Issues = "https://www.github.com/ehallmark/langchain-mcp-adapters/issues"
+
