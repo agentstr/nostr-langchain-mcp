@@ -451,8 +451,6 @@ class MultiServerMCPClient:
             nwc_str: Nostr wallet connection string for lightning payments (not yet implemented)
             session_kwargs: Additional keyword arguments to pass to the ClientSession
         """
-        print(f'my relays: {relays}')
-        print(f'my private_key: {private_key}')
         nostr_client = NostrClient(
             relays=relays,
             private_key=private_key,
