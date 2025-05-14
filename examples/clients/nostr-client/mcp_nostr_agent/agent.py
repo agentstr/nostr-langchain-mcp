@@ -20,6 +20,7 @@ _ensure_env("ANTHROPIC_API_KEY")
 
 model = ChatAnthropic(temperature=0, model_name="claude-3-7-sonnet-latest")
 
+
 @asynccontextmanager
 async def get_tools():
     relays = os.getenv('NOSTR_RELAYS').split(',')
@@ -38,6 +39,7 @@ async def get_tools():
         }
     ) as client:
         yield client.get_tools()
+
 
 @asynccontextmanager
 async def mcp_client():
