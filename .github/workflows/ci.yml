@@ -2,7 +2,7 @@ name: langchain-nostr-mcp-adapters-ci
 on:
   push:
     branches:
-      - main
+      - nostr
 jobs:
   uv-example:
     name: python
