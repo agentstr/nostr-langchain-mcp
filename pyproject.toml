@@ -1,16 +1,17 @@
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
-name = "langchain-mcp-adapters"
-version = "0.0.12"
+name = "langchain-nostr-mcp-adapters"
+version = "0.0.1"
 description = "Make Anthropic Model Context Protocol (MCP) tools compatible with LangChain and LangGraph agents."
 authors = [
     { name = "Vadym Barda", email = "19161700+vbarda@users.noreply.github.com" },
+    { name = "Evan Hallmark", email = "ehallmark1122@gmail.com" }
 ]
 license = "MIT"
-repository = "https://www.github.com/langchain-ai/langchain-mcp-adapters"
+repository = "https://www.github.com/ehallmark/langchain-mcp-adapters"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
