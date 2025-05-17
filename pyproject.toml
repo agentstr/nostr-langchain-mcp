@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "langchain-nostr-mcp-adapters"
-version = "0.0.1"
+version = "0.0.2"
 description = "Make Anthropic Model Context Protocol (MCP) tools compatible with LangChain and LangGraph agents."
 authors = [
     { name = "Vadym Barda", email = "19161700+vbarda@users.noreply.github.com" },
@@ -12,11 +12,11 @@ authors = [
 ]
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "langchain-core>=0.3.36,<0.4",
     "mcp>=1.7",
-    "nostr-agent-tools>=0.3.4",
+    "nostr-agent-tools>=0.4.0",
 ]
 
 [tool.uv]
