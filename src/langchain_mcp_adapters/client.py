@@ -42,6 +42,8 @@ class Connection(TypedDict):
 
 
 class NostrConnection(Connection):
+    transport: Literal["nostr"]
+
     relays: list[str]
     """List of Nostr relays to connect to."""
 
