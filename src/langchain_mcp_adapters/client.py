@@ -20,8 +20,8 @@ from langchain_mcp_adapters.prompts import load_mcp_prompt
 from langchain_mcp_adapters.resources import load_mcp_resources
 from langchain_mcp_adapters.tools import load_mcp_tools, _convert_call_tool_result
 
-from nostr_agents.nostr_client import NostrClient
-from nostr_agents.nostr_mcp_client import NostrMCPClient
+from agentstr import NostrClient
+from agentstr import NostrMCPClient
 
 
 EncodingErrorHandler = Literal["strict", "ignore", "replace"]
