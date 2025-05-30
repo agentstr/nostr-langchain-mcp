@@ -473,11 +473,13 @@ class MultiServerMCPClient:
                 tool_name: str
         ):
             async def inner(**arguments: dict[str, Any]):
+                print(f'Tool call arguments for {tool_name}: {arguments}')
                 call_tool_result = await asyncio.to_thread(session.call_tool,
                                                            tool_name,
                                                            arguments)
                 call_tool_result = CallToolResult(**call_tool_result)
                 result = _convert_call_tool_result(call_tool_result)
+                print(f'Tool call result for {tool_name}: {result}')
                 return result, None
             return inner
 
@@ -486,6 +488,7 @@ class MultiServerMCPClient:
                 StructuredTool(
                     name=tool['name'],
                     description=tool.get('description') or "",
+                    metadata={'satoshis': tool.get('satoshis', 0)},
                     args_schema=tool['inputSchema'],
                     coroutine=call_tool(tool['name']),
                     response_format="content_and_artifact",
