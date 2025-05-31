@@ -69,7 +69,7 @@ def convert_mcp_tool_to_langchain_tool(
     )
 
 
-async def load_mcp_tools(session: ClientSession) -> list[BaseTool]:
+def load_mcp_tools(session: ClientSession) -> list[BaseTool]:
     """Load all available MCP tools and convert them to LangChain tools."""
-    tools = await session.list_tools()
+    tools = session.list_tools()
     return [convert_mcp_tool_to_langchain_tool(session, tool) for tool in tools.tools]

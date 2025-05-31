@@ -166,11 +166,10 @@ class MultiServerMCPClient:
         self.connections: dict[str, StdioConnection | SSEConnection | WebsocketConnection] = (
             connections or {}
         )
-        self.exit_stack = AsyncExitStack()
         self.sessions: dict[str, ClientSession] = {}
         self.server_name_to_tools: dict[str, list[BaseTool]] = {}
 
-    async def _initialize_session_and_load_tools(
+    def _initialize_session_and_load_tools(
         self, server_name: str, session: ClientSession
     ) -> None:
         """Initialize a session and load tools from it.
@@ -180,14 +179,14 @@ class MultiServerMCPClient:
             session: The ClientSession to initialize
         """
         # Initialize the session
-        await session.initialize()
+        session.initialize()
         self.sessions[server_name] = session
 
         # Load tools from this server
-        server_tools = await load_mcp_tools(session)
+        server_tools = load_mcp_tools(session)
         self.server_name_to_tools[server_name] = server_tools
 
-    async def connect_to_server(
+    def connect_to_server(
         self,
         server_name: str,
         *,
@@ -212,7 +211,7 @@ class MultiServerMCPClient:
         if transport == "sse":
             if "url" not in kwargs:
                 raise ValueError("'url' parameter is required for SSE connection")
-            await self.connect_to_server_via_sse(
+            self.connect_to_server_via_sse(
                 server_name,
                 url=kwargs["url"],
                 headers=kwargs.get("headers"),
@@ -223,7 +222,7 @@ class MultiServerMCPClient:
         elif transport == "streamable_http":
             if "url" not in kwargs:
                 raise ValueError("'url' parameter is required for Streamable HTTP connection")
-            await self.connect_to_server_via_streamable_http(
+            self.connect_to_server_via_streamable_http(
                 server_name,
                 url=kwargs["url"],
                 headers=kwargs.get("headers"),
@@ -238,7 +237,7 @@ class MultiServerMCPClient:
                 raise ValueError("'command' parameter is required for stdio connection")
             if "args" not in kwargs:
                 raise ValueError("'args' parameter is required for stdio connection")
-            await self.connect_to_server_via_stdio(
+            self.connect_to_server_via_stdio(
                 server_name,
                 command=kwargs["command"],
                 args=kwargs["args"],
@@ -253,7 +252,7 @@ class MultiServerMCPClient:
         elif transport == "websocket":
             if "url" not in kwargs:
                 raise ValueError("'url' parameter is required for Websocket connection")
-            await self.connect_to_server_via_websocket(
+            self.connect_to_server_via_websocket(
                 server_name,
                 url=kwargs["url"],
                 session_kwargs=kwargs.get("session_kwargs"),
@@ -267,7 +266,7 @@ class MultiServerMCPClient:
                 raise ValueError("'server_public_key' parameter is required for Nostr connection")
             if "nwc_str" not in kwargs:
                 raise ValueError("'nwc_str' parameter is required for Nostr connection")
-            await self.connect_to_server_via_nostr(
+            self.connect_to_server_via_nostr(
                 server_name,
                 relays=kwargs["relays"],
                 private_key=kwargs["private_key"],
@@ -433,7 +432,7 @@ class MultiServerMCPClient:
 
         await self._initialize_session_and_load_tools(server_name, session)
 
-    async def connect_to_server_via_nostr(
+    def connect_to_server_via_nostr(
         self,
         server_name: str,
         *,
@@ -465,21 +464,16 @@ class MultiServerMCPClient:
         self.sessions[server_name] = session
 
         # Load tools from this server
-        tools = await asyncio.to_thread(session.list_tools)
-        print(f'Tools: {tools}')
+        tools = session.list_tools()
         server_tools = []
 
         def call_tool(
                 tool_name: str
         ):
             async def inner(**arguments: dict[str, Any]):
-                print(f'Tool call arguments for {tool_name}: {arguments}')
-                call_tool_result = await asyncio.to_thread(session.call_tool,
-                                                           tool_name,
-                                                           arguments)
+                call_tool_result = session.call_tool(tool_name, arguments)
                 call_tool_result = CallToolResult(**call_tool_result)
                 result = _convert_call_tool_result(call_tool_result)
-                print(f'Tool call result for {tool_name}: {result}')
                 return result, None
             return inner
 
@@ -525,21 +519,3 @@ class MultiServerMCPClient:
         session = self.sessions[server_name]
         return await load_mcp_resources(session, uris)
 
-    async def __aenter__(self) -> "MultiServerMCPClient":
-        try:
-            connections = self.connections or {}
-            for server_name, connection in connections.items():
-                await self.connect_to_server(server_name, **connection)
-
-            return self
-        except Exception:
-            await self.exit_stack.aclose()
-            raise
-
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        await self.exit_stack.aclose()

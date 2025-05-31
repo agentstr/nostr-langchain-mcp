@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nostr-langchain-mcp"
-version = "0.0.2"
+version = "0.0.3"
 description = "Make Anthropic Model Context Protocol (MCP) tools compatible with LangChain and LangGraph agents."
 authors = [
     { name = "Vadym Barda", email = "19161700+vbarda@users.noreply.github.com" },
@@ -14,13 +14,16 @@ license = "MIT"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "agentstr-sdk>=0.1.4",
+    "agentstr-sdk>=0.1.8",
     "langchain-core>=0.3.36,<0.4",
     "mcp>=1.7"
 ]
 
 [tool.uv]
 reinstall-package = ["agentstr-sdk"]
+
+[tool.uv.sources]
+agentstr-sdk = { path = "/Users/ehallmark/repos/nostr-agent-tools/" }
 
 [dependency-groups]
 test = [

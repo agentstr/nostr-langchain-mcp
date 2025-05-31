@@ -15,8 +15,8 @@ members = [
 
 [[package]]
 name = "agentstr-sdk"
-version = "0.1.4"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.8"
+source = { directory = "../nostr-agent-tools" }
 dependencies = [
     { name = "bolt11" },
     { name = "mcp", extra = ["cli"] },
@@ -26,9 +26,27 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "secp256k1" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/15/b9/7e91f6a915cb0b29805e292f6179b8508b55f53c19de73bd7c0f8c25985a/agentstr_sdk-0.1.4.tar.gz", hash = "sha256:cca67bd54f42d00024d504f3174e6af943413944631caf1fdbaa07f66f3b8734", size = 21788 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5c/ac/f259ccef3d6df6d2021fc18d9da77acdfcd699be7ac8b479b77c05bbfc67/agentstr_sdk-0.1.4-py3-none-any.whl", hash = "sha256:e546e7d49eea60efab8a4ad1ee549bd9be209da58564a117724f3b6246cc5ddf", size = 24532 },
+
+[package.metadata]
+requires-dist = [
+    { name = "bolt11", specifier = ">=2.1.1" },
+    { name = "langchain", marker = "extra == 'rag'", specifier = ">=0.3.25" },
+    { name = "langchain-community", marker = "extra == 'rag'", specifier = ">=0.3.24" },
+    { name = "langchain-openai", marker = "extra == 'rag'", specifier = ">=0.3.18" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
+    { name = "pycryptodome", specifier = "==3.10.1" },
+    { name = "pydantic", specifier = ">=2.11.3" },
+    { name = "pynostr", extras = ["websocket-client"], specifier = ">=0.6.2" },
+    { name = "python-dotenv", specifier = ">=1.1.0" },
+    { name = "secp256k1", specifier = ">=0.14.0" },
+]
+provides-extras = ["rag"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "furo", specifier = ">=2024.8.6" },
+    { name = "sphinx", specifier = ">=8.1.3" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
 ]
 
 [[package]]
@@ -787,7 +805,7 @@ requires-dist = [
 
 [[package]]
 name = "nostr-langchain-mcp"
-version = "0.0.2"
+version = "0.0.3"
 source = { editable = "." }
 dependencies = [
     { name = "agentstr-sdk" },
@@ -808,7 +826,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agentstr-sdk", specifier = ">=0.1.4" },
+    { name = "agentstr-sdk", directory = "../nostr-agent-tools" },
     { name = "langchain-core", specifier = ">=0.3.36,<0.4" },
     { name = "mcp", specifier = ">=1.7" },
 ]
