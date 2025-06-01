@@ -16,9 +16,9 @@ from mcp.client.sse import sse_client
 from mcp.client.stdio import stdio_client
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.types import CallToolResult
-from langchain_mcp_adapters.prompts import load_mcp_prompt
-from langchain_mcp_adapters.resources import load_mcp_resources
-from langchain_mcp_adapters.tools import load_mcp_tools, _convert_call_tool_result
+from nostr_langchain_mcp.prompts import load_mcp_prompt
+from nostr_langchain_mcp.resources import load_mcp_resources
+from nostr_langchain_mcp.tools import load_mcp_tools, _convert_call_tool_result
 
 from agentstr import NostrMCPClient
 

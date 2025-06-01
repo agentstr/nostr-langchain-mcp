@@ -15,32 +15,50 @@ members = [
 
 [[package]]
 name = "agentstr-sdk"
-version = "0.1.8"
+version = "0.2.4"
 source = { directory = "../nostr-agent-tools" }
 dependencies = [
     { name = "bolt11" },
+    { name = "expiringdict" },
     { name = "mcp", extra = ["cli"] },
     { name = "pycryptodome" },
     { name = "pydantic" },
-    { name = "pynostr", extra = ["websocket-client"] },
-    { name = "python-dotenv" },
+    { name = "pynostr" },
     { name = "secp256k1" },
+    { name = "websockets" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "agno", marker = "extra == 'agno'", specifier = ">=1.5.6" },
+    { name = "agno", marker = "extra == 'all'", specifier = ">=1.5.6" },
     { name = "bolt11", specifier = ">=2.1.1" },
+    { name = "dspy", marker = "extra == 'all'", specifier = ">=2.6.24" },
+    { name = "dspy", marker = "extra == 'dspy'", specifier = ">=2.6.24" },
+    { name = "expiringdict", specifier = ">=1.2.2" },
+    { name = "langchain", marker = "extra == 'all'", specifier = ">=0.3.25" },
     { name = "langchain", marker = "extra == 'rag'", specifier = ">=0.3.25" },
+    { name = "langchain-community", marker = "extra == 'all'", specifier = ">=0.3.24" },
     { name = "langchain-community", marker = "extra == 'rag'", specifier = ">=0.3.24" },
+    { name = "langchain-openai", marker = "extra == 'agno'", specifier = ">=0.3.18" },
+    { name = "langchain-openai", marker = "extra == 'all'", specifier = ">=0.3.18" },
+    { name = "langchain-openai", marker = "extra == 'dspy'", specifier = ">=0.3.18" },
+    { name = "langchain-openai", marker = "extra == 'langgraph'", specifier = ">=0.3.18" },
     { name = "langchain-openai", marker = "extra == 'rag'", specifier = ">=0.3.18" },
+    { name = "langgraph", marker = "extra == 'all'", specifier = ">=0.4.7" },
+    { name = "langgraph", marker = "extra == 'langgraph'", specifier = ">=0.4.7" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.6.0" },
     { name = "pycryptodome", specifier = "==3.10.1" },
     { name = "pydantic", specifier = ">=2.11.3" },
-    { name = "pynostr", extras = ["websocket-client"], specifier = ">=0.6.2" },
-    { name = "python-dotenv", specifier = ">=1.1.0" },
+    { name = "pynostr", specifier = ">=0.6.2" },
+    { name = "python-dotenv", marker = "extra == 'all'", specifier = ">=1.1.0" },
+    { name = "python-dotenv", marker = "extra == 'examples'", specifier = ">=1.1.0" },
     { name = "secp256k1", specifier = ">=0.14.0" },
+    { name = "websockets", specifier = ">=15.0.1" },
+    { name = "yfinance", marker = "extra == 'all'", specifier = ">=0.2.61" },
+    { name = "yfinance", marker = "extra == 'examples'", specifier = ">=0.2.61" },
 ]
-provides-extras = ["rag"]
+provides-extras = ["rag", "langgraph", "dspy", "agno", "examples", "all"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -361,6 +379,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277 },
+]
+
+[[package]]
+name = "expiringdict"
+version = "1.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/62/c2af4ebce24c379b949de69d49e3ba97c7e9c9775dc74d18307afa8618b7/expiringdict-1.2.2.tar.gz", hash = "sha256:300fb92a7e98f15b05cf9a856c1415b3bc4f2e132be07daa326da6414c23ee09", size = 8137 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/84/a04c59324445f4bcc98dc05b39a1cd07c242dde643c1a3c21e4f7beaf2f2/expiringdict-1.2.2-py3-none-any.whl", hash = "sha256:09a5d20bc361163e6432a874edd3179676e935eb81b925eccef48d409a8a45e8", size = 8456 },
 ]
 
 [[package]]
@@ -805,7 +832,7 @@ requires-dist = [
 
 [[package]]
 name = "nostr-langchain-mcp"
-version = "0.0.3"
+version = "0.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "agentstr-sdk" },
@@ -1052,11 +1079,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/08/b6/818c072bd98c6472c305fa0ce9822592a3c8601ebe550b02465404fa629b/pynostr-0.6.2.tar.gz", hash = "sha256:2974ea05b3ff41a1a4060e3b1813eb0ce0e60c0b81fbe668afaa65164c7f82f4", size = 52310 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/67/4c/d76378abc44c15375708cb3eb8ee9f199879b905b4c2ceda9ea108dfae79/pynostr-0.6.2-py3-none-any.whl", hash = "sha256:d43fb236c73174093275ee0080b2f8ed17e974b2b516f0d73da4c9a3e908ddc5", size = 36301 },
-]
-
-[package.optional-dependencies]
-websocket-client = [
-    { name = "websocket-client" },
 ]
 
 [[package]]
@@ -1424,15 +1446,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/fc/17/180ca383f5061b61406477218c55d66ec118e6c0c51f02d8142895fcf0a9/watchfiles-1.0.5-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:839ebd0df4a18c5b3c1b890145b5a3f5f64063c2a0d02b13c76d78fe5de34936", size = 624677 },
     { url = "https://files.pythonhosted.org/packages/bf/15/714d6ef307f803f236d69ee9d421763707899d6298d9f3183e55e366d9af/watchfiles-1.0.5-cp313-cp313-win32.whl", hash = "sha256:4a8ec1e4e16e2d5bafc9ba82f7aaecfeec990ca7cd27e84fb6f191804ed2fcfc", size = 277804 },
     { url = "https://files.pythonhosted.org/packages/a8/b4/c57b99518fadf431f3ef47a610839e46e5f8abf9814f969859d1c65c02c7/watchfiles-1.0.5-cp313-cp313-win_amd64.whl", hash = "sha256:f436601594f15bf406518af922a89dcaab416568edb6f65c4e5bbbad1ea45c11", size = 291087 },
-]
-
-[[package]]
-name = "websocket-client"
-version = "1.8.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e6/30/fba0d96b4b5fbf5948ed3f4681f7da2f9f64512e1d303f94b4cc174c24a5/websocket_client-1.8.0.tar.gz", hash = "sha256:3239df9f44da632f96012472805d40a23281a991027ce11d2f45a6f24ac4c3da", size = 54648 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5a/84/44687a29792a70e111c5c477230a72c4b957d88d16141199bf9acb7537a3/websocket_client-1.8.0-py3-none-any.whl", hash = "sha256:17b44cc997f5c498e809b22cdf2d9c7a9e71c02c8cc2b6c56e7c2d1239bfa526", size = 58826 },
 ]
 
 [[package]]
