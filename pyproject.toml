@@ -7,8 +7,7 @@ name = "nostr-langchain-mcp"
 version = "0.0.3"
 description = "Make Anthropic Model Context Protocol (MCP) tools compatible with LangChain and LangGraph agents."
 authors = [
-    { name = "Vadym Barda", email = "19161700+vbarda@users.noreply.github.com" },
-    { name = "Evan Hallmark", email = "ehallmark1122@gmail.com" }
+    { name = "@HallmarkBitcoin", email = "ehallmark1122@gmail.com" }
 ]
 license = "MIT"
 readme = "README.md"
